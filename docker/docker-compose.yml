@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  ros-source-test:
+    image: opencv-box
+    container_name: opencv-tutorials
+    network_mode: host
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - $HOME/.Xauthority:/root/.Xauthority:rw
+    stdin_open: true
+    tty: true
+    restart: "no"

@@ -32,6 +32,7 @@ eroded = cv.erode(dilated, (7,7), iterations=3)
 #cv.imshow('Eroded', eroded)
 
 #Resize image
+#INTER_CUBIC is slower but higher quality, useful for making images larger INTER_LINEAR also helps, INTER_AREA is default
 resized = cv.resize(img, (500, 500), interpolation=cv.INTER_CUBIC)
 cv.imshow('Resized', resized)
 
