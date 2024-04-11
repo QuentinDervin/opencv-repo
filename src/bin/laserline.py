@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-img = cv.imread('/home/quentin/Documents/my_first_simulation/controllers/camera_image_grabber/L2CM_C7CM/CAM_BROKE2.jpg')
+img = cv.imread('/home/quentin/Documents/my_first_simulation/controllers/camera_image_grabber/L2CM_C7CM/camera_slant_L5CM.jpg')
 cv.imshow('camera', img)
 height, width, channels = img.shape
 
@@ -44,19 +44,22 @@ mean_y = np.mean(y_values)
 threshold = 10
 
 # Filter out values that are too far from the mean
-filtered_y_values = [y for y in y_values if abs(y - mean_y) <= threshold]
+#filtered_y_values = [y for y in y_values if abs(y - mean_y) <= threshold]
 
 y_sum = 0
-for value in filtered_y_values:
+for value in y_values:
     y_sum = y_sum + value
+
 y_avg = y_sum/len(y_values)
 
+print(y_avg)
+
 # Display the red line
-cv.imshow('Red Line', red_line)
+#cv.imshow('Red Line', red_line)
 
 #Look into edge detection prior hough for clearer output
 canny = cv.Canny(red_line, 200, 250)
-cv.imshow('Canny Edges', canny)
+#cv.imshow('Canny Edges', canny)
 
 #HoughTransformation
 #threshold=25, minLineLength=20, maxLineGap=30 -------- works for broken lines
@@ -72,26 +75,26 @@ if lines is not None:
         cv.line(blank_img, (x1, y1), (x2, y2), (0, 0, 255), 2)  # Draw line on the blank image
 
 # Display the result
-cv.imshow('Hough Lines Detection', blank_img)
+#cv.imshow('Hough Lines Detection', blank_img)
 
-# Plot histogram of y-values
-plt.hist(y_values, bins=50, color='r', alpha=0.7)
-plt.xlabel('Y-coordinate')
-plt.ylabel('Frequency')
-plt.title('Histogram of Lines')
-plt.grid(True)
-plt.show()
+# # Plot histogram of y-values
+# plt.hist(y_values, bins=50, color='r', alpha=0.7)
+# plt.xlabel('Y-coordinate')
+# plt.ylabel('Frequency')
+# plt.title('Histogram of Lines')
+# plt.grid(True)
+# plt.show()
 
-# Count occurrences of each y-value
+# # Count occurrences of each y-value
 y_unique, y_counts = np.unique(y_values, return_counts=True)
 
-# Plot line graph of y-value counts
-plt.plot(y_unique, y_counts, color='r')
-plt.xlabel('Y-coordinate')
-plt.ylabel('Frequency')
-plt.title('Red Frequency')
-plt.grid(True)
-plt.show()
+# # Plot line graph of y-value counts
+# plt.plot(y_unique, y_counts, color='r')
+# plt.xlabel('Y-coordinate')
+# plt.ylabel('Frequency')
+# plt.title('Red Frequency')
+# plt.grid(True)
+# plt.show()
 
 # Find peaks in the line graph manually
 peaks = []
@@ -114,11 +117,69 @@ while i < len(y_counts) - 1:
 
 print(peaks)
 
+for peak in peaks:
+    distance = 2 * (1450/peak) -4
+    print("Peak: An object is "+str(distance)+"cm away!")
+
 blank_img_2 = np.zeros_like(img)
 for peak in peaks:
     cv.line(blank_img_2, (0, peak), (width - 1, peak), (0, 0, 255), 1)
 
-cv.imshow("blank line graph", blank_img_2)
+#cv.imshow("blank line graph", blank_img_2)
+
+interval_size = int(width/5)
+interval_one = []
+interval_two = []
+interval_three = []
+interval_four = []
+interval_five = []
+for pixel in line_pixels:
+    x, y = pixel
+    if x < interval_size:
+        interval_one.append(pixel)
+    elif x < 2*interval_size:
+        interval_two.append(pixel)
+    elif x < 3*interval_size:
+        interval_three.append(pixel)
+    elif x < 4*interval_size:
+        interval_four.append(pixel)
+    elif x < 5*interval_size:
+        interval_five.append(pixel)    
+
+intervals = [interval_one, interval_two, interval_three, interval_four, interval_five]
+int = 1
+for interval in intervals:
+    sum = 0
+    y_values = []
+    for pixel in interval:
+        x, y = pixel
+        y_values.append(y)
+    mean_y = np.mean(y_values)
+
+    center_distance = 2 * (1450/mean_y) -4
+    #then here do some diagonal distance calc for some intervals
+    true_distance = center_distance
+    print("Interval "+str(int)+": An object is average "+str(true_distance)+"cm away!")
+
+    
+
+    int = int + 1
+
+#X value average in intervals check
+
+# int = 1
+# for interval in intervals:
+#     sum = 0
+#     x_values = []
+#     for pixel in interval:
+#         x, y = pixel
+#         x_values.append(x)
+#     mean_x = np.mean(x_values)
+#     print("Interval "+str(int)+": Average "+str(mean_x))
+#     int = int +1
+            
+
+
 
 cv.waitKey(0)
 
