@@ -1,8 +1,11 @@
 import cv2 as cv
 import numpy as np
+import time
 
 # Initialize the camera capture
-cap = cv.VideoCapture(4)  # Use 0 for the default camera, or specify the camera index if you have multiple cameras
+cap = cv.VideoCapture(0, cv.CAP_DSHOW)  # Use 0 for the default camera, or specify the camera index if you have multiple cameras
+cap.set(cv.CAP_PROP_FRAME_WIDTH, 1920)
+cap.set(cv.CAP_PROP_FRAME_HEIGHT, 1080)
 
 # Check if the camera is opened successfully
 if not cap.isOpened():
@@ -32,9 +35,13 @@ while True:
     #cv.imshow("hsv red", hsv)
 
     # Define lower and upper bounds for red color in HSV for Thresholding
-    #CHANGED TO 80%
-    lower_red = np.array([0, 20, 20])
-    upper_red = np.array([10, 255, 255])
+    # #CHANGED TO 80%
+    # lower_red = np.array([0, 20, 20])
+    # upper_red = np.array([10, 255, 255])
+    lower_red = np.array([160, 100, 180])
+    upper_red = np.array([255, 135, 255])
+    #170-180 saturation, 100-135 hue, 180-255 value
+    #new 160 255, 100 135, 180 255
 
     # Threshold mask for the HSV image to get only red colors
     mask = cv.inRange(hsv, lower_red, upper_red)
@@ -71,14 +78,14 @@ while True:
     else:
         y_avg = 0 
 
-    print(y_avg)
+    print("Y-Average: "+str(y_avg))
 
     # Display the red line
     #    cv.imshow('Red Line', red_line)
 
     #Look into edge detection prior hough for clearer output
     canny = cv.Canny(red_line, 200, 250)
-    #cv.imshow('Canny Edges', canny)
+    cv.imshow('Canny Edges', canny)
 
         #HoughTransformation
     #threshold=25, minLineLength=20, maxLineGap=30 -------- works for broken lines
@@ -114,20 +121,78 @@ while True:
         i += 1
 
 
-    print(peaks)
+    # print(peaks)
     
 
-    for peak in peaks:
-        distance = 2 * (1450/peak) -4
-        print("An object is "+str(distance)+"cm away!")
+    # for peak in peaks:
+    #     distance = 2 * (1450/peak) -4
+    #     print("An object is "+str(distance)+"cm away!")
 
     blank_img_2 = np.zeros_like(frame)
     for peak in peaks:
         cv.line(blank_img_2, (0, peak), (width - 1, peak), (0, 0, 255), 1)
 
+    interval_size = 384
+    print("Interval Size: "+str(interval_size))
+    interval_one = []
+    interval_two = []
+    interval_three = []
+    interval_four = []
+    interval_five = []
+    for pixel in line_pixels:
+        x, y = pixel
+        if x < interval_size:
+            interval_one.append(pixel)
+        elif x < 2*interval_size:
+            interval_two.append(pixel)
+        elif x < 3*interval_size:
+            interval_three.append(pixel)
+        elif x < 4*interval_size:
+            interval_four.append(pixel)
+        elif x < 5*interval_size:
+            interval_five.append(pixel)    
+
+    intervals = [interval_three]
+    int = 1
+    for interval in intervals:
+        sum = 0
+        y_values = []
+        for pixel in interval:
+            x, y = pixel
+            y_values.append(y)
+        mean_y = np.mean(y_values)
+
+        # center_distance = 2 * (1450/mean_y) -4
+
+        # center_distance = (60 * (2.7**(3.2-mean_y)))
+        # center_distance = (-1*(math.log((mean_y+40)/60, 2.7))) + 3.1
+
+        if 1280>=mean_y>=1025:
+            center_distance = (mean_y-1280)/(-1020)
+        elif 1025>mean_y>=592:
+            center_distance = (mean_y-1169.33)/(-577.33)
+        elif 592>mean_y>=247:
+            center_distance = (mean_y-1282)/(-690)
+        elif 247>mean_y>=101.5:
+            center_distance = (mean_y-683.5)/(-291)
+        elif 101.5>mean_y>0:
+            center_distance = (mean_y-219.7)/(-59.1)
+        else:
+            center_distance = None
+
+
+    
+        print("Middle Interval "+str(int)+": An object is average "+str(center_distance)+"cm away with average pixel height of"+str(mean_y)+"!")
+
+        
+
+        int = int + 1
+
     # Check for 'q' key press to exit
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
+
+    time.sleep(1)
 
 # Release the capture and close all OpenCV windows
 cap.release()

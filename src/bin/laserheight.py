@@ -1,9 +1,10 @@
 import cv2 as cv
 import numpy as np
-# import matplotlib.pyplot as plt
+import math
 
 
-img = cv.imread("2inch.png")
+
+img = cv.imread("1inch.png")
 cv.imshow('camera', img)
 height, width, channels = img.shape
 
@@ -60,7 +61,7 @@ if y_sum > 0:
 else:
     y_avg = 0
 
-print(y_avg)
+print("Y-Average: "+str(y_avg))
 
 # Display the red line
 #cv.imshow('Red Line', red_line)
@@ -85,24 +86,9 @@ if lines is not None:
 # Display the result
 cv.imshow('Hough Lines Detection', blank_img)
 
-# # Plot histogram of y-values
-# plt.hist(y_values, bins=50, color='r', alpha=0.7)
-# plt.xlabel('Y-coordinate')
-# plt.ylabel('Frequency')
-# plt.title('Histogram of Lines')
-# plt.grid(True)
-# plt.show()
-
 # # Count occurrences of each y-value
 y_unique, y_counts = np.unique(y_values, return_counts=True)
 
-# # Plot line graph of y-value counts
-# plt.plot(y_unique, y_counts, color='r')
-# plt.xlabel('Y-coordinate')
-# plt.ylabel('Frequency')
-# plt.title('Red Frequency')
-# plt.grid(True)
-# plt.show()
 
 # Find peaks in the line graph manually
 peaks = []
@@ -123,11 +109,11 @@ while i < len(y_counts) - 1:
     i += 1
 
 
-print(peaks)
+# print(peaks)
 
-for peak in peaks:
-    distance = 2 * (1450/peak) -4
-    print("Peak: An object is "+str(distance)+"cm away!")
+# for peak in peaks:
+#     distance = 2 * (1450/peak) -4
+#     print("Peak: An object is "+str(distance)+"cm away!")
 
 blank_img_2 = np.zeros_like(img)
 for peak in peaks:
@@ -136,7 +122,7 @@ for peak in peaks:
 cv.imshow("blank line graph", blank_img_2)
 
 interval_size = int(width/5)
-print(interval_size)
+print("Interval Size: "+str(interval_size))
 interval_one = []
 interval_two = []
 interval_three = []
@@ -155,22 +141,37 @@ for pixel in line_pixels:
     elif x < 5*interval_size:
         interval_five.append(pixel)    
 
-intervals = [interval_one, interval_two, interval_three, interval_four, interval_five]
+intervals = [interval_three]
 int = 1
 for interval in intervals:
     sum = 0
     y_values = []
-    # print(interval[0])
-    # print(interval[-1])
     for pixel in interval:
         x, y = pixel
         y_values.append(y)
     mean_y = np.mean(y_values)
 
-    center_distance = 2 * (1450/mean_y) -4
-    #then here do some diagonal distance calc for some intervals
-    true_distance = center_distance
-    print("Interval "+str(int)+": An object is average "+str(true_distance)+"cm away with average pixel of"+str(mean_y)+"!")
+    # center_distance = 2 * (1450/mean_y) -4
+
+    # center_distance = (60 * (2.7**(3.2-mean_y)))
+    # center_distance = (-1*(math.log((mean_y+40)/60, 2.7))) + 3.1
+
+    if 1280>=mean_y>=1025:
+        center_distance = (mean_y-1280)/(-1020)
+    elif 1025>mean_y>=592:
+        center_distance = (mean_y-1169.33)/(-577.33)
+    elif 592>mean_y>=247:
+        center_distance = (mean_y-1282)/(-690)
+    elif 247>mean_y>=101.5:
+        center_distance = (mean_y-683.5)/(-291)
+    elif 101.5>mean_y>0:
+        center_distance = (mean_y-219.7)/(-59.1)
+    else:
+        center_distance = None
+
+
+  
+    print("Middle Interval "+str(int)+": An object is average "+str(center_distance)+"cm away with average pixel height of"+str(mean_y)+"!")
 
     
 
@@ -186,7 +187,7 @@ for interval in intervals:
         x, y = pixel
         x_values.append(x)
     mean_x = np.mean(x_values)
-    print("Interval "+str(int)+": Average "+str(mean_x))
+    print("Interval "+str(int)+": Average x-value "+str(mean_x))
     int = int +1
             
 
