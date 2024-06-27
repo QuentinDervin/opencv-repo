@@ -5,7 +5,7 @@
 #include "camera_pins.h"
 
 // Threshold value for red intensity detection
-const int RED_INTENSITY_THRESHOLD = 200; // Adjust this value as needed
+const int RED_INTENSITY_THRESHOLD = 230; // Adjust this value as needed
 
 void setup() {
   // Start the serial communication
@@ -72,6 +72,10 @@ void loop() {
   long sumYValue = 0;
   int width = fb->width;
   int height = fb->height;
+  //Used to eliminate cases where 1-10 pixels will count as a margin of error
+  int zeroThreshold = 10;
+  //define a dictionary type structure for individual pixel distances
+  //distanceDict = empty
 
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
@@ -80,6 +84,8 @@ void loop() {
       
       // Check if the intensity corresponds to red
       if (intensity > RED_INTENSITY_THRESHOLD) {
+        //calculate distance
+        //distanceDict add {(x, y), DISTANCE}
         redPixelCount++;
         sumYValue += y;
       }
@@ -87,15 +93,42 @@ void loop() {
   }
 
   // Calculate the average y-value if any red pixels are detected
-  float avgYValue = (redPixelCount > 0) ? (float)sumYValue / redPixelCount : 0;
+  float avgYValue = (redPixelCount > zeroThreshold) ? (float)sumYValue / redPixelCount : 0;
 
-  // Output the number of red pixels detected
-  Serial.print("Number of red pixels detected: ");
-  Serial.println(redPixelCount);
+  float centerDistance = 0;
+  if (avgYValue > 0 && avgYValue <= 20) {
+    centerDistance = (.05 * avgYValue);
+  } else if (avgYValue > 20 && avgYValue <= 125) {
+    centerDistance = (.01 * avgYValue) + 0.75;
+  } else if (avgYValue > 125 && avgYValue <= 222) {
+    centerDistance = (0.01 * avgYValue) + 0.7;
+  } else if (avgYValue > 222 && avgYValue <= 340) {
+    centerDistance = (0.0254 * avgYValue) - 2.65;
+  } else if (avgYValue > 340 && avgYValue <= 388) {
+    centerDistance = (0.0625 * avgYValue) - 15.25;
+  } else if (avgYValue > 388) {
+    centerDistance = (0.08333 * avgYValue) - 23.33;
+  }
 
-  // Output the average y-value
-  Serial.print("Average y-value: ");
-  Serial.println(avgYValue);
+  // Output the number of high-intensity pixels detected
+  if (redPixelCount < zeroThreshold) {
+    Serial.println("Number of high-intensity pixels detected: 0");
+    Serial.println("Average y-value: 0");
+  } else {
+    Serial.print("Number of high-intensity pixels detected: ");
+    Serial.println(redPixelCount);
+
+    // Output the average y-value
+    Serial.print("Average y-value: ");
+    Serial.println(avgYValue);
+
+    // Output the average distance
+    Serial.print("Average distance: ");
+    Serial.println(centerDistance);    
+  }
+
+  //Output the distance dictionary somewhere?
+
 
   // Free the frame buffer memory
   esp_camera_fb_return(fb);
