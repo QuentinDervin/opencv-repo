@@ -1,6 +1,8 @@
 # opencv-repo
 Repository for OpenCV tutorial projects leading to the ESP-32 Camera-Laser current prototype.
-All relevant Files are in the Arduino Folder.
+All relevant Files are in the Arduino Folder. These were run through the Arduino IDE.
+
+The SRC and Docker folders contain out-of-date python scripts used for earlier testing.
 
 In the Overview image, you can see an overview of the current prototype.
 The laser is powered by the battery pack using two standard AAA batteries. 
