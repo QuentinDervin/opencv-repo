@@ -5,7 +5,7 @@
 #include "camera_pins.h"
 
 // Threshold value for red intensity detection
-const int RED_INTENSITY_THRESHOLD = 230; // Adjust this value as needed
+const int RED_INTENSITY_THRESHOLD = 230; 
 
 void setup() {
   // Start the serial communication
@@ -72,10 +72,10 @@ void loop() {
   long sumYValue = 0;
   int width = fb->width;
   int height = fb->height;
-  //Used to eliminate cases where 1-10 pixels will count as a margin of error
+  // Used to eliminate cases where less pixels than this value are detected
   int zeroThreshold = 10;
-  //define a dictionary type structure for individual pixel distances
-  //distanceDict = empty
+  // Define a dictionary for saving individual pixel distances
+  // Placeholder
 
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
@@ -84,8 +84,9 @@ void loop() {
       
       // Check if the intensity corresponds to red
       if (intensity > RED_INTENSITY_THRESHOLD) {
-        //calculate distance
-        //distanceDict add {(x, y), DISTANCE}
+        // Calculate Distance using the center distance calculation
+        // Adjust Distance using x-value distance from center
+        // Add coordinate and distance to dictionary
         redPixelCount++;
         sumYValue += y;
       }
@@ -95,6 +96,7 @@ void loop() {
   // Calculate the average y-value if any red pixels are detected
   float avgYValue = (redPixelCount > zeroThreshold) ? (float)sumYValue / redPixelCount : 0;
 
+  // Finds the distance from the average y-value for debugging purposes, assuming center distance
   float centerDistance = 0;
   if (avgYValue > 0 && avgYValue <= 20) {
     centerDistance = (.05 * avgYValue);
@@ -122,13 +124,13 @@ void loop() {
     Serial.print("Average y-value: ");
     Serial.println(avgYValue);
 
-    // Output the average distance
+    // Output the y-value average distance
     Serial.print("Average distance: ");
     Serial.println(centerDistance);    
   }
 
-  //Output the distance dictionary somewhere?
-
+  // Output the distance dictionary
+  // Placeholder
 
   // Free the frame buffer memory
   esp_camera_fb_return(fb);
